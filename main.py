@@ -2,13 +2,14 @@ import chess
 import os
 from random import sample
 
-piece_weights = {
-    chess.PAWN: 100,
-    chess.ROOK: 500,
-    chess.KNIGHT: 320,
-    chess.BISHOP: 330,
-    chess.QUEEN: 900,
-    chess.KING: 20000
+PIECE_WEIGHTS = {
+  None: 0,
+  chess.PAWN: 100,
+  chess.ROOK: 500,
+  chess.KNIGHT: 320,
+  chess.BISHOP: 330,
+  chess.QUEEN: 900,
+  chess.KING: 20000
 }
 
 def whose_turn():
@@ -20,39 +21,47 @@ def move(movement):
 def evaluate(board):
   top_value = 0
   for movement in board.legal_moves:
-    weight = piece_weights[board.piece_type_at(movement.from_square)]
+    weight = PIECE_WEIGHTS[board.piece_type_at(movement.from_square)]
     if weight > top_value:
       top_value = weight
   return top_value
 
 def minimax_root(board, depth, maximizing_player):
   best_move = None
-  best_value = -float('inf')
+  best_value = alpha = -float('inf')
+  beta = float('inf')
 
   for movement in board.legal_moves:
     move(movement)
-    value = max(best_value, minimax(board, depth - 1, not maximizing_player))
+    value = max(best_value, minimax(board, alpha, beta, depth - 1, not maximizing_player))
     board.pop()
     if value > best_value:
       best_move = movement
+      best_value = value
   return best_move
 
-def minimax(board, depth, maximizing_player):
+def minimax(board, alpha, beta, depth, maximizing_player):
   if depth == 0 or board.is_game_over():
     return evaluate(board)
   if maximizing_player:
-    value = -float('inf')
+    value = alpha
     for movement in board.legal_moves:
       move(movement)
-      value = max(value, minimax(board, depth - 1, False))
+      value = max(value, minimax(board, alpha, beta, depth - 1, False))
       board.pop()
+      alpha = max(alpha, value)
+      if beta <= alpha:
+        return value
     return value
   else:
-    value = float('inf')
+    value = beta
     for movement in board.legal_moves:
       move(movement)
-      value = min(value, minimax(board, depth - 1, True))
+      value = min(value, minimax(board, alpha, beta, depth - 1, True))
       board.pop()
+      beta = min(beta, value)
+      if beta <= alpha:
+        return value
     return value
 
 board = chess.Board()
@@ -67,5 +76,5 @@ while not board.is_game_over():
     move(position)
   else:
     # position = sample(list(board.legal_moves), 1)[0]
-    position = minimax_root(board, 2, True)
+    position = minimax_root(board, 5, True)
     move(position)
