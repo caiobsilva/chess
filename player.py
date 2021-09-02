@@ -3,7 +3,6 @@ from random import sample
 
 class Player():
   PIECE_WEIGHTS = {
-    None: 0,
     chess.PAWN: 100,
     chess.ROOK: 500,
     chess.KNIGHT: 320,
@@ -11,22 +10,35 @@ class Player():
     chess.QUEEN: 900,
     chess.KING: 20000
   }
-  RANDOM = 0
-  MINIMAX = 1
+
+  WHITE_COLOR = True
+  BLACK_COLOR = False
+
+  RANDOM_STRATEGY = 0
+  MINIMAX_STRATEGY = 1
+
+  MINIMAX_DEPTH = 4
 
   def __init__(self, color, is_bot, strategy=None) -> None:
     self.color = color
     self.is_bot = is_bot
     self.strategy = strategy
 
-  def move(self, board, position=None) -> chess.Move:
+  def move(self, board) -> chess.Move:
     if not self.is_bot:
-      return chess.Move.from_uci(position)
-    elif self.strategy == Player.RANDOM:
-      return sample(list(board.legal_moves), 1)[0]
-    elif self.strategy == Player.MINIMAX:
-      return self.minimax_root(board, 4, True)
+      try:
+        position = input("\nMake a move\n")
+        return chess.Move.from_uci(position)
+      except ValueError:
+        print("Invalid move. Try again.")
+    elif self.strategy == Player.RANDOM_STRATEGY:
+      return self.random_move(board)
+    elif self.strategy == Player.MINIMAX_STRATEGY:
+      return self.minimax_root(board, Player.MINIMAX_DEPTH, True)
     pass
+
+  def random_move(self, board) -> chess.Move:
+    return sample(list(board.legal_moves), 1).pop()
 
   def minimax_root(self, board, depth, maximizing_player) -> chess.Move:
     best_move = None
@@ -67,14 +79,13 @@ class Player():
       return value
 
   def evaluate(self, board) -> int:
-    whites = blacks = 0
+    points = 0
     for square in chess.SQUARES:
       piece = board.piece_at(square)
       if not piece:
         continue
-      if piece.color == chess.WHITE:
-        whites += Player.PIECE_WEIGHTS[piece.piece_type]
+      if piece.color == self.color:
+        points += Player.PIECE_WEIGHTS[piece.piece_type]
       else:
-        blacks += Player.PIECE_WEIGHTS[piece.piece_type]
-    # print(whites - blacks)
-    return whites - blacks
+        points -= Player.PIECE_WEIGHTS[piece.piece_type]
+    return points
