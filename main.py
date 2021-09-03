@@ -7,12 +7,16 @@ def clear_stdout() -> None:
 
 def set_player(color) -> Player:
   clear_stdout()
-  output_color = "white" if Player.WHITE_COLOR else "black"
+  output_color = "white" if color == Player.WHITE_COLOR else "black"
   player_kind = input("Choose " + output_color + " player:\n1. Bot\n2. Player\n")
+
   is_bot = True if player_kind == "1" else False
+  strategy = None
+
   if is_bot:
     strategy_kind = input("Choose bot strategy:\n1. Random\n2. Minimax\n")
     strategy = Player.RANDOM_STRATEGY if strategy_kind == "1" else Player.MINIMAX_STRATEGY
+
   return Player(color, is_bot, strategy)
 
 def main():

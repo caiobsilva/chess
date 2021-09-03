@@ -51,7 +51,12 @@ class Game():
     outcome = self.board.outcome()
     if outcome == None:
       return ""
-    winner = "No one" if outcome.winner == None else outcome.winner
+    if outcome.winner == chess.WHITE:
+      winner = "White"
+    elif outcome.winner == chess.BLACK:
+      winner = "Black"
+    else:
+      winner = "No one"
     return "\nGame over. " + winner + " won due to " + str(outcome.termination)
 
   def is_white_turn(self) -> bool:

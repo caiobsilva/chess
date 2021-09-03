@@ -23,19 +23,21 @@ class Player():
     self.color = color
     self.is_bot = is_bot
     self.strategy = strategy
+    self.move_stack = []
 
   def move(self, board) -> chess.Move:
     if not self.is_bot:
       try:
         position = input("\nMake a move\n")
-        return chess.Move.from_uci(position)
+        movement = chess.Move.from_uci(position)
       except ValueError:
         print("Invalid move. Try again.")
     elif self.strategy == Player.RANDOM_STRATEGY:
-      return self.random_move(board)
+      movement = self.random_move(board)
     elif self.strategy == Player.MINIMAX_STRATEGY:
-      return self.minimax_root(board, Player.MINIMAX_DEPTH, True)
-    pass
+      movement = self.minimax_root(board, Player.MINIMAX_DEPTH, True)
+    self.move_stack.append(movement.uci())
+    return movement
 
   def random_move(self, board) -> chess.Move:
     return sample(list(board.legal_moves), 1).pop()
@@ -52,6 +54,10 @@ class Player():
       if value > best_value:
         best_move = movement
         best_value = value
+
+    if self.move_stack.count(best_move.uci()) >= 3:
+      self.move_stack = []
+      return self.random_move(board)
     return best_move
 
   def minimax(self, board, alpha, beta, depth, maximizing_player) -> int:
